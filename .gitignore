@@ -1,0 +1,6 @@
+.idea
+node_modules
+built
+package-lock.json
+.test_run
+docs
