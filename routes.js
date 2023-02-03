@@ -1,7 +1,7 @@
 const path = require('path'),
   fs = require('fs'),
   config = require('./config'),
-  { GeoPackageAPI, setCanvasKitWasmLocateFile } = require('@ngageoint/geopackage');
+  { GeoPackageManager, setCanvasKitWasmLocateFile, Canvas } = require('@ngageoint/geopackage');
 
 function cors(req, res, next) {
   res.set('Access-Control-Allow-Methods', 'GET');
@@ -11,12 +11,12 @@ function cors(req, res, next) {
 
 setCanvasKitWasmLocateFile(file => path.join(__dirname, 'node_modules', '@ngageoint', 'geopackage', 'dist', 'canvaskit', file));
 
-function handleImageResponse(res, data) {
+async function handleImageResponse(res, data) {
   if (!data) {
     return res.sendStatus(404);
   }
-  const contentType = data.substring(data.indexOf('image/'), data.indexOf(';base64,'));
-  const bytes = Buffer.from(data.split(',')[1], 'base64').toString('binary');
+  const bytes = await Canvas.writeImageToBytes(data, data.getFormat(), 1.0);
+  const contentType = data.getFormat();
 
   res.writeHead(200, {
     'Content-Type': contentType,
@@ -39,7 +39,7 @@ module.exports = function(app) {
       if (err || !stats) {
         return res.sendStatus(404);
       }
-      GeoPackageAPI.open(geoPackagePath).then(geoPackage => {
+      GeoPackageManager.open(geoPackagePath).then(geoPackage => {
         if (!geoPackage) {
           console.log('Unkonwn GeoPackage %s', geoPackagePath);
           return res.sendStatus(404);
@@ -47,6 +47,7 @@ module.exports = function(app) {
         if (geoPackage.hasTileTable(table)) {
           geoPackage
             .xyzTile(table, x, y, z, 256, 256)
+            .then(data => data.getGeoPackageImage())
             .then(data => handleImageResponse(res, data))
             .catch(() => {
               return res.sendStatus(404);

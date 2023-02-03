@@ -1,6 +1,6 @@
 {
   "name": "geopackage-xyz-server-js",
-  "version": "4.1.1",
+  "version": "5.0.0",
   "description": "Serves out GeoPackages as XYZ layers",
   "main": "index.js",
   "keywords": [
@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "express": "^4.15.2",
-    "@ngageoint/geopackage": "4.2.3"
+    "@ngageoint/geopackage": "5.0.0-beta"
   },
   "scripts": {
     "start": "node index.js"
